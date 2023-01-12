@@ -1,11 +1,12 @@
 package log
+
 import (
 	"io"
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	api "github.com/ppmasa8/proglog/api/v1"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -51,7 +52,7 @@ func TestSegment(t *testing.T) {
 
 	require.NoError(t, s.Remove())
 
-	s,err = newSegment(dir, 16, c)
+	s, err = newSegment(dir, 16, c)
 	require.NoError(t, err)
 	require.False(t, s.IsMaxed())
 	require.NoError(t, s.Close())
