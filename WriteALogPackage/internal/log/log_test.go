@@ -34,3 +34,17 @@ func TestLog(t *testing.T) {
 		})
 	}
 }
+
+func testAppendRead(t *testing.T, log *Log) {
+	append := &api.Record{
+		Value: []byte("hello world"),
+	}
+	off, err := log.Append(append)
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), off)
+
+	read, err := log.Read(off)
+	require.NoError(t, err)
+	require.Equal(t, append.Value, read.Value)
+	require.NoError(t, log.Close())
+}
