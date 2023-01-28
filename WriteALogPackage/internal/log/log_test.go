@@ -15,10 +15,10 @@ func TestLog(t *testing.T) {
 		t *testing.T, log *Log,
 	){
 		"append and read a record succeeds": testAppendRead,
-		"offset out of range error": 		 testOutOfRangeErr,
-		"init with existing segments":		 testInitExisting,
-		"reader":							 testReader,
-		"truncate":							 testTruncate,
+		"offset out of range error":         testOutOfRangeErr,
+		"init with existing segments":       testInitExisting,
+		"reader":                            testReader,
+		"truncate":                          testTruncate,
 	} {
 		t.Run(scenario, func(t *testing.T) {
 			dir, err := os.MkdirTemp("", "store-test")
@@ -108,13 +108,14 @@ func testTruncate(t *testing.T, log *Log) {
 	append := &api.Record{
 		Value: []byte("hello world"),
 	}
-	for i := 0, i < 3; i++ {
+	for i := 0; i < 3; i++ {
 		_, err := log.Append(append)
 		require.NoError(t, err)
 	}
 
 	err := log.Truncate(1)
 	require.NoError(t, err)
+
 	_, err = log.Read(0)
 	require.Error(t, err)
 	require.NoError(t, log.Close())

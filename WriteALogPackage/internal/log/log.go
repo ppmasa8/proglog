@@ -31,9 +31,10 @@ func NewLog(dir string, c Config) (*Log, error) {
 		c.Segment.MaxIndexBytes = 1024
 	}
 	l := &Log{
-		Dir: dir,
+		Dir:    dir,
 		Config: c,
 	}
+
 	return l, l.setup()
 }
 
@@ -58,6 +59,8 @@ func (l *Log) setup() error {
 		if err = l.newSegment(baseOffsets[i]); err != nil {
 			return err
 		}
+		// baseOffset contains dup for index and store so we skip
+		// the dup
 		i++
 	}
 	if l.segments == nil {
@@ -76,7 +79,7 @@ func (l *Log) Append(record *api.Record) (uint64, error) {
 
 	highestOffset, err := l.highestOffset()
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	if l.activeSegment.IsMaxed() {
@@ -90,7 +93,6 @@ func (l *Log) Append(record *api.Record) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	return off, err
 }
 
@@ -104,7 +106,7 @@ func (l *Log) Read(off uint64) (*api.Record, error) {
 			break
 		}
 	}
-	if s == nil || s.nextOffset <= off {
+	if s == nil {
 		return nil, fmt.Errorf("offset out of range: %d", off)
 	}
 	return s.Read(off)
@@ -156,7 +158,7 @@ func (l *Log) highestOffset() (uint64, error) {
 	return off - 1, nil
 }
 
-func (l *Log) Truncate(lowset uint64) error {
+func (l *Log) Truncate(lowest uint64) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	var segments []*segment
@@ -175,10 +177,10 @@ func (l *Log) Truncate(lowset uint64) error {
 
 func (l *Log) Reader() io.Reader {
 	l.mu.RLock()
-	defer l.mu.Unlock()
+	defer l.mu.RUnlock()
 	readers := make([]io.Reader, len(l.segments))
 	for i, segment := range l.segments {
-		readers[i] = &originReader(segment.store, 0)
+		readers[i] = &originReader{segment.store, 0}
 	}
 	return io.MultiReader(readers...)
 }
