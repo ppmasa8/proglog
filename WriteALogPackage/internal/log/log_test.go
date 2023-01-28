@@ -84,3 +84,7 @@ func testInitExisting(t *testing.T, o *Log) {
 	require.Equal(t, uint64(2), off)
 	require.NoError(t, n.Close())
 }
+
+func testReader(t *testing.T, log *Log) {
+	
+}
