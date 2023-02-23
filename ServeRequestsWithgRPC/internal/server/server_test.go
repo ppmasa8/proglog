@@ -31,3 +31,14 @@ func TestServer(t *testing.T) {
 		})
 	}
 }
+
+func setupTest(t *testing.T, fn func(*Config)) (
+	client api.LogClient,
+	cfg *Config,
+	teardown func(),
+) {
+	t. Helper()
+
+	l, err := new.Listen("tcp", ":0")
+	require.NoError(t, err)
+}
