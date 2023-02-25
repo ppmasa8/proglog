@@ -41,4 +41,35 @@ func setupTest(t *testing.T, fn func(*Config)) (
 
 	l, err := new.Listen("tcp", ":0")
 	require.NoError(t, err)
+	clientOptions := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials())
+	}
+	cc, err := grpc.Dial(l.Addr().String(), clientOptions...)
+	require.NoError(t, err)
+
+	dir, er := os.MkdirTemp("", "server-test")
+	require.NoError(t, err)
+
+	cfg = &Config{
+		CommitLog: clog,
+	}
+
+	if fn != nil {
+		fn(cfg)
+	}
+	server, err := NewGRPCServer(cfg)
+	require.NoError(t, err)
+
+	go func() {
+		server.Serve(l)
+	}()
+
+	client = api.NewLogClient(cc)
+
+	return client, cfg, func() {
+		cc.Close()
+		server.Stop()
+		l.Close()
+		clog.Remove()
+	}
 }
