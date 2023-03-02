@@ -73,3 +73,7 @@ func setupTest(t *testing.T, fn func(*Config)) (
 		clog.Remove()
 	}
 }
+
+func testProduceConsume(t *testing.T, client api.LogClient, config *Config) {
+	ctx := context.Background()
+}
